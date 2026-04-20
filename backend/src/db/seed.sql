@@ -25,6 +25,12 @@ INSERT OR IGNORE INTO projects (id, name, owner) VALUES
   (2, 'Beta Battery',     'mert'),
   (3, 'Gamma Harness',    'ayse');
 
+-- Default users: corporate auth verifies the password, local role decides authz.
+INSERT OR IGNORE INTO users (id, username, full_name, role) VALUES
+  (1, 'admin',  'Sistem Yöneticisi', 'admin'),
+  (2, 'eren',   'Eren Ucar',         'user'),
+  (3, 'mert',   'Mert Test',         'user');
+
 -- Blacklist: New Year across all locations/areas
 INSERT OR IGNORE INTO blacklist_dates (test_area_id, location_id, date, reason) VALUES
   (NULL, NULL, '2026-01-01', 'New Year'),

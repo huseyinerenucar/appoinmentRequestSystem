@@ -17,6 +17,7 @@ export interface CreateBookingInput {
   startDate: string;
   endDate: string;
   notes?: string | null;
+  createdByUserId?: number | null;
 }
 
 export interface CreateBookingResult {
@@ -104,8 +105,8 @@ export async function createBooking(
     const info = txDb
       .prepare(
         `INSERT INTO appointments
-          (test_area_id, project_id, start_date, end_date, status, notes)
-         VALUES (?, ?, ?, ?, 'confirmed', ?)`,
+          (test_area_id, project_id, start_date, end_date, status, notes, created_by_user_id)
+         VALUES (?, ?, ?, ?, 'confirmed', ?, ?)`,
       )
       .run(
         area.id,
@@ -113,6 +114,7 @@ export async function createBooking(
         input.startDate,
         input.endDate,
         input.notes ?? null,
+        input.createdByUserId ?? null,
       );
 
     const appointment = txDb

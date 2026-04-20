@@ -56,6 +56,25 @@ export interface DayAvailability {
   blacklisted: boolean;
 }
 
+export type UserRole = 'admin' | 'user';
+
+export interface User {
+  id: number;
+  username: string;
+  full_name: string | null;
+  role: UserRole;
+  is_active: number;
+  created_at: number;
+  last_login_at: number | null;
+}
+
+export interface Session {
+  token: string;
+  user_id: number;
+  created_at: number;
+  expires_at: number;
+}
+
 export interface HierarchyNode {
   location: Location;
   categories: {

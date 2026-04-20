@@ -63,7 +63,39 @@ export interface CreateBookingInput {
 }
 
 export interface ApiError {
-  error: 'conflict' | 'blacklisted' | 'validation' | 'internal' | 'not_found';
+  error:
+    | 'conflict'
+    | 'blacklisted'
+    | 'validation'
+    | 'internal'
+    | 'not_found'
+    | 'auth';
   message: string;
   details?: unknown;
+}
+
+export type UserRole = 'admin' | 'user';
+
+export interface User {
+  id: number;
+  username: string;
+  full_name: string | null;
+  role: UserRole;
+  is_active: number;
+  created_at: number;
+  last_login_at: number | null;
+}
+
+export interface LoginResponse {
+  token: string;
+  expiresAt: number;
+  user: User;
+}
+
+export interface BlacklistDate {
+  id: number;
+  test_area_id: number | null;
+  location_id: number | null;
+  date: string;
+  reason: string | null;
 }

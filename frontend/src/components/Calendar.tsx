@@ -15,6 +15,7 @@ import {
 } from 'date-fns';
 import { useMemo, useState } from 'react';
 import { fetchAvailability } from '../api';
+import { tr } from '../i18n';
 import { useSelection } from '../store';
 import type { DayAvailability } from '../types';
 
@@ -92,7 +93,7 @@ export function Calendar({ areaId }: Props) {
       </div>
 
       <div className="grid grid-cols-7 gap-1 text-xs text-slate-500">
-        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
+        {tr.calendar.days.map((d) => (
           <div key={d} className="text-center font-medium">{d}</div>
         ))}
       </div>
@@ -130,8 +131,8 @@ export function Calendar({ areaId }: Props) {
               title={
                 slot
                   ? slot.blacklisted
-                    ? 'Blacklisted'
-                    : `${slot.available}/${slot.capacity} available`
+                    ? tr.calendar.blacklistTitle
+                    : tr.calendar.availableOf(slot.available, slot.capacity)
                   : ''
               }
               className={`aspect-square rounded text-xs transition
@@ -155,18 +156,18 @@ export function Calendar({ areaId }: Props) {
 
       <div className="mt-3 flex gap-3 text-xs text-slate-600">
         <span className="inline-flex items-center gap-1">
-          <span className="h-3 w-3 rounded bg-emerald-100" /> Free
+          <span className="h-3 w-3 rounded bg-emerald-100" /> {tr.calendar.free}
         </span>
         <span className="inline-flex items-center gap-1">
-          <span className="h-3 w-3 rounded bg-amber-100" /> Partial
+          <span className="h-3 w-3 rounded bg-amber-100" /> {tr.calendar.partial}
         </span>
         <span className="inline-flex items-center gap-1">
-          <span className="h-3 w-3 rounded bg-slate-200" /> Full
+          <span className="h-3 w-3 rounded bg-slate-200" /> {tr.calendar.full}
         </span>
         <span className="inline-flex items-center gap-1">
-          <span className="h-3 w-3 rounded bg-rose-100" /> Blacklisted
+          <span className="h-3 w-3 rounded bg-rose-100" /> {tr.calendar.blacklisted}
         </span>
-        {isLoading && <span>Loading…</span>}
+        {isLoading && <span>{tr.calendar.loading}</span>}
       </div>
     </div>
   );

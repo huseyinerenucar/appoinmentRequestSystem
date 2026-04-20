@@ -6,7 +6,12 @@ import { router } from './http/routes.js';
 
 export function buildApp() {
   const app = express();
-  app.use(cors({ origin: process.env.CORS_ORIGIN ?? '*' }));
+  app.use(
+    cors({
+      origin: process.env.CORS_ORIGIN ?? '*',
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    }),
+  );
   app.use(express.json({ limit: '256kb' }));
 
   app.get('/health', (_req, res) => res.json({ ok: true }));

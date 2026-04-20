@@ -4,6 +4,7 @@ import {
   ConflictError,
   ValidationError,
 } from '../db/transaction.js';
+import { AuthError } from '../services/auth.js';
 
 export function notFound(_req: Request, res: Response): void {
   res.status(404).json({ error: 'not_found' });
@@ -15,6 +16,10 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ): void {
+  if (err instanceof AuthError) {
+    res.status(err.status).json({ error: 'auth', message: err.message });
+    return;
+  }
   if (err instanceof ConflictError) {
     res.status(409).json({ error: 'conflict', message: err.message, details: err.details });
     return;

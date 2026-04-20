@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchHierarchy } from '../api';
+import { tr } from '../i18n';
 import { useSelection } from '../store';
 import type { TestArea } from '../types';
 
@@ -11,8 +12,8 @@ export function Hierarchy() {
   const areaId = useSelection((s) => s.areaId);
   const setArea = useSelection((s) => s.setArea);
 
-  if (isLoading) return <p className="text-sm text-slate-500">Loading…</p>;
-  if (error) return <p className="text-sm text-red-600">Failed to load hierarchy.</p>;
+  if (isLoading) return <p className="text-sm text-slate-500">{tr.app.loading}</p>;
+  if (error) return <p className="text-sm text-rose-600">{tr.app.loadFailed}</p>;
   if (!data) return null;
 
   return (
@@ -44,7 +45,7 @@ export function Hierarchy() {
                           areaId === area.id ? 'text-blue-100' : 'text-slate-500'
                         }`}
                       >
-                        · cap {area.daily_capacity}
+                        · {tr.hierarchy.capacity} {area.daily_capacity}
                       </span>
                     </button>
                   </li>

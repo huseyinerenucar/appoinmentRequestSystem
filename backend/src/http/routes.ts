@@ -5,10 +5,19 @@ import { ValidationError } from '../db/transaction.js';
 import { fetchAvailability, getAreaOrThrow } from '../services/availability.js';
 import { createBooking, listBookings } from '../services/bookings.js';
 import { getHierarchy } from '../services/hierarchy.js';
+import { requireAuth } from './middleware/auth.js';
+import { adminRouter } from './routes/admin.js';
+import { authRouter } from './routes/auth.js';
 
 export const router = Router();
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'must be YYYY-MM-DD');
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD bekleniyor');
+
+// ---- public (no auth) ----
+router.use('/auth', authRouter);
+
+// ---- authenticated ----
+router.use(requireAuth);
 
 router.get('/hierarchy', (_req, res) => {
   res.json(getHierarchy());
@@ -47,7 +56,10 @@ router.post('/bookings', async (req, res, next) => {
   try {
     const parsed = bookingBody.safeParse(req.body);
     if (!parsed.success) throw new ValidationError(parsed.error.issues[0]!.message);
-    const result = await createBooking(parsed.data);
+    const result = await createBooking({
+      ...parsed.data,
+      createdByUserId: req.user!.id,
+    });
     res.status(201).json(result);
   } catch (err) {
     next(err);
@@ -70,3 +82,6 @@ router.get('/bookings', (req, res, next) => {
     next(err);
   }
 });
+
+// ---- admin-only ----
+router.use('/admin', adminRouter);

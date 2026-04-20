@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { HttpError, createBooking } from '../api';
+import { tr } from '../i18n';
 import { useSelection } from '../store';
 import type { Appointment } from '../types';
 
@@ -34,12 +35,22 @@ export function BookingForm({ areaId }: Props) {
       setProjectOwner('');
       setNotes('');
       clearRange();
-      // Optimistic rollback: simply invalidate so next fetch is authoritative.
       qc.invalidateQueries({ queryKey: ['availability', areaId] });
     },
     onError: (err) => {
       if (err instanceof HttpError) {
-        setErrorMsg(err.payload.message);
+        const code = err.payload.error;
+        const msg =
+          code === 'conflict'
+            ? tr.errors.conflict
+            : code === 'blacklisted'
+              ? tr.errors.blacklisted
+              : code === 'validation'
+                ? err.payload.message || tr.errors.validation
+                : code === 'auth'
+                  ? tr.errors.auth
+                  : tr.errors.internal;
+        setErrorMsg(msg);
         const details = err.payload.details as
           | { dates?: Array<string | { date: string }> }
           | undefined;
@@ -49,7 +60,7 @@ export function BookingForm({ areaId }: Props) {
         setConflictDates(list);
         qc.invalidateQueries({ queryKey: ['availability', areaId] });
       } else {
-        setErrorMsg(String(err));
+        setErrorMsg(tr.errors.network);
       }
     },
   });
@@ -78,7 +89,7 @@ export function BookingForm({ areaId }: Props) {
       onSubmit={submit}
       className="space-y-3 rounded-lg border bg-white p-4 shadow-sm"
     >
-      <h3 className="text-base font-semibold">Book this area</h3>
+      <h3 className="text-base font-semibold">{tr.booking.header}</h3>
 
       <div className="text-sm text-slate-600">
         {rangeStart && rangeEnd ? (
@@ -86,12 +97,14 @@ export function BookingForm({ areaId }: Props) {
             <b>{rangeStart}</b> → <b>{rangeEnd}</b>
           </span>
         ) : (
-          <span className="italic">Pick a start and end date on the calendar.</span>
+          <span className="italic">{tr.booking.pickRange}</span>
         )}
       </div>
 
       <label className="block text-sm">
-        <span className="text-slate-700">Project name *</span>
+        <span className="text-slate-700">
+          {tr.booking.projectName} <span className="text-rose-500">*</span>
+        </span>
         <input
           className="mt-1 w-full rounded border px-2 py-1 text-sm"
           value={projectName}
@@ -101,7 +114,7 @@ export function BookingForm({ areaId }: Props) {
       </label>
 
       <label className="block text-sm">
-        <span className="text-slate-700">Project owner</span>
+        <span className="text-slate-700">{tr.booking.projectOwner}</span>
         <input
           className="mt-1 w-full rounded border px-2 py-1 text-sm"
           value={projectOwner}
@@ -110,7 +123,7 @@ export function BookingForm({ areaId }: Props) {
       </label>
 
       <label className="block text-sm">
-        <span className="text-slate-700">Notes</span>
+        <span className="text-slate-700">{tr.booking.notes}</span>
         <textarea
           className="mt-1 w-full rounded border px-2 py-1 text-sm"
           rows={2}
@@ -125,12 +138,12 @@ export function BookingForm({ areaId }: Props) {
         className="w-full rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white
                    hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
       >
-        {mutation.isPending ? 'Booking…' : 'Submit booking'}
+        {mutation.isPending ? tr.booking.submitting : tr.booking.submit}
       </button>
 
       {success && (
         <div className="rounded bg-emerald-50 p-2 text-sm text-emerald-800">
-          Booking #{success.id} confirmed.
+          {tr.booking.success(success.id)}
         </div>
       )}
 
@@ -139,7 +152,7 @@ export function BookingForm({ areaId }: Props) {
           <p>{errorMsg}</p>
           {conflictDates.length > 0 && (
             <p className="mt-1 text-xs">
-              Affected date(s): {conflictDates.join(', ')}
+              {tr.booking.affectedDates}: {conflictDates.join(', ')}
             </p>
           )}
         </div>
