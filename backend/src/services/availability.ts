@@ -27,11 +27,7 @@ const AVAILABILITY_SQL = `
   bl AS (
     SELECT date FROM blacklist_dates
      WHERE date BETWEEN @start AND @end
-       AND (
-            test_area_id = @area_id
-         OR (test_area_id IS NULL AND location_id = @location_id)
-         OR (test_area_id IS NULL AND location_id IS NULL)
-       )
+       AND (test_area_id = @area_id OR test_area_id IS NULL)
   )
   SELECT o.date,
          o.booked,
@@ -66,11 +62,7 @@ const UNAVAILABLE_DAYS_SQL = `
   bl AS (
     SELECT date FROM blacklist_dates
      WHERE date BETWEEN @start AND @end
-       AND (
-            test_area_id = @area_id
-         OR (test_area_id IS NULL AND location_id = @location_id)
-         OR (test_area_id IS NULL AND location_id IS NULL)
-       )
+       AND (test_area_id = @area_id OR test_area_id IS NULL)
   )
   SELECT o.date, o.booked,
          CASE WHEN bl.date IS NULL THEN 0 ELSE 1 END AS blacklisted
@@ -108,7 +100,6 @@ export function fetchAvailability(
     start,
     end,
     area_id: area.id,
-    location_id: area.location_id,
   }) as AvailabilityRow[];
 
   return rows.map((r) => ({
@@ -137,7 +128,6 @@ export function findUnavailableDays(
     start,
     end,
     area_id: area.id,
-    location_id: area.location_id,
     capacity: area.daily_capacity,
   }) as UnavailableRow[];
 }

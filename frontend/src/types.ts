@@ -1,9 +1,3 @@
-export interface Location {
-  id: number;
-  name: string;
-  timezone: string;
-}
-
 export interface TestCategory {
   id: number;
   name: string;
@@ -13,7 +7,6 @@ export interface TestCategory {
 export interface TestArea {
   id: number;
   category_id: number;
-  location_id: number;
   name: string;
   daily_capacity: number;
   min_days: number;
@@ -22,11 +15,8 @@ export interface TestArea {
 }
 
 export interface HierarchyNode {
-  location: Location;
-  categories: {
-    category: TestCategory;
-    areas: TestArea[];
-  }[];
+  category: TestCategory;
+  areas: TestArea[];
 }
 
 export interface DayAvailability {
@@ -95,7 +85,6 @@ export interface LoginResponse {
 export interface BlacklistDate {
   id: number;
   test_area_id: number | null;
-  location_id: number | null;
   date: string;
   reason: string | null;
 }

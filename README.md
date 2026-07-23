@@ -1,6 +1,6 @@
 # Randevu Talep Sistemi (Appointment Request System)
 
-Full-stack appointment booking system (Turkish UI) with role-based authorization, corporate authentication, hierarchical resource management (Locations → Test Categories → Test Areas), and concurrency-safe date-range reservations backed by SQLite.
+Full-stack appointment booking system (Turkish UI, light/dark mode) with role-based authorization, corporate authentication, hierarchical resource management (Test Categories → Test Areas), and concurrency-safe date-range reservations backed by SQLite.
 
 ## Architecture
 
@@ -15,7 +15,7 @@ appoinmentRequestSystem/
 | Role  | Scope                                                                  |
 |-------|------------------------------------------------------------------------|
 | user  | Browse hierarchy, view availability, create bookings                   |
-| admin | All of the above **plus** CRUD on locations, categories, test areas (incl. `daily_capacity`, `min/max_days`, active flag), blacklist dates, and user role/status |
+| admin | All of the above **plus** CRUD on categories, test areas (incl. `daily_capacity`, `min/max_days`, active flag), blacklist dates, and user role/status |
 
 Roles are stored locally in the `users` table. The corporate server is authoritative only for **authentication** (password verification).
 
@@ -69,7 +69,7 @@ Dev login (while `CORPORATE_AUTH_URL` is unset): `admin` / anything for the admi
 |--------|-------------------------|---------------------------------------|
 | GET    | `/api/auth/me`          | Current user                          |
 | POST   | `/api/auth/logout`      | Revoke current session                |
-| GET    | `/api/hierarchy`        | Nested Locations → Categories → Areas |
+| GET    | `/api/hierarchy`        | Categories with their active Test Areas |
 | GET    | `/api/availability`     | Daily slot availability for a range   |
 | POST   | `/api/bookings`         | Atomic booking (`409` on clash)       |
 | GET    | `/api/bookings`         | List bookings by area                 |
@@ -77,7 +77,6 @@ Dev login (while `CORPORATE_AUTH_URL` is unset): `admin` / anything for the admi
 ### Admin-only
 | Method            | Path                         | Purpose                       |
 |-------------------|------------------------------|-------------------------------|
-| GET/POST/PUT/DEL  | `/api/admin/locations`       | Manage locations              |
 | GET/POST/PUT/DEL  | `/api/admin/categories`      | Manage test categories        |
 | GET/POST/PUT/DEL  | `/api/admin/areas`           | Manage test areas + capacity  |
 | GET/POST/DEL      | `/api/admin/blacklist`       | Manage blacklisted dates      |
@@ -91,3 +90,8 @@ npm run test:race      # 5 concurrent requests for a capacity=1 slot
 ```
 
 Expected: exactly one success, four `ConflictError` rejections.
+
+## Theme (Light / Dark)
+
+The frontend supports a light/dark mode toggle in the top-right corner of both the login screen and the app header. The choice is persisted in `localStorage` under `ars.theme`; if unset, the OS preference (`prefers-color-scheme`) is used. Tailwind is configured with `darkMode: 'class'` and the theme class is applied eagerly at module load to avoid a flash of the wrong theme.
+

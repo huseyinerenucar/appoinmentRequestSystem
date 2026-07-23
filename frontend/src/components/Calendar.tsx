@@ -73,26 +73,30 @@ export function Calendar({ areaId }: Props) {
   }
 
   return (
-    <div className="rounded-lg border bg-white p-4 shadow-sm">
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
       <div className="mb-3 flex items-center justify-between">
         <button
           type="button"
-          className="rounded bg-slate-100 px-2 py-1 text-sm hover:bg-slate-200"
+          className="rounded bg-slate-100 px-2 py-1 text-sm text-slate-700 hover:bg-slate-200
+                     dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600"
           onClick={() => setCursor(subMonths(cursor, 1))}
         >
           ←
         </button>
-        <h2 className="text-base font-semibold">{format(cursor, 'MMMM yyyy')}</h2>
+        <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+          {format(cursor, 'MMMM yyyy')}
+        </h2>
         <button
           type="button"
-          className="rounded bg-slate-100 px-2 py-1 text-sm hover:bg-slate-200"
+          className="rounded bg-slate-100 px-2 py-1 text-sm text-slate-700 hover:bg-slate-200
+                     dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600"
           onClick={() => setCursor(addMonths(cursor, 1))}
         >
           →
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-xs text-slate-500">
+      <div className="grid grid-cols-7 gap-1 text-xs text-slate-500 dark:text-slate-400">
         {tr.calendar.days.map((d) => (
           <div key={d} className="text-center font-medium">{d}</div>
         ))}
@@ -113,14 +117,14 @@ export function Calendar({ areaId }: Props) {
 
           const heat =
             !slot
-              ? 'bg-slate-50'
+              ? 'bg-slate-50 dark:bg-slate-900'
               : slot.blacklisted
-                ? 'bg-rose-100 text-rose-700'
+                ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200'
                 : slot.available === 0
-                  ? 'bg-slate-200 text-slate-400'
+                  ? 'bg-slate-200 text-slate-400 dark:bg-slate-700 dark:text-slate-500'
                   : slot.available < slot.capacity
-                    ? 'bg-amber-100 text-amber-800'
-                    : 'bg-emerald-100 text-emerald-800';
+                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'
+                    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200';
 
           return (
             <button
@@ -138,7 +142,7 @@ export function Calendar({ areaId }: Props) {
               className={`aspect-square rounded text-xs transition
                 ${heat}
                 ${otherMonth ? 'opacity-50' : ''}
-                ${inRange ? 'ring-2 ring-blue-600' : ''}
+                ${inRange ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''}
                 ${disabled ? 'cursor-not-allowed' : 'hover:brightness-95'}`}
             >
               <div className="flex flex-col items-center justify-center h-full">
@@ -154,18 +158,22 @@ export function Calendar({ areaId }: Props) {
         })}
       </div>
 
-      <div className="mt-3 flex gap-3 text-xs text-slate-600">
+      <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-600 dark:text-slate-300">
         <span className="inline-flex items-center gap-1">
-          <span className="h-3 w-3 rounded bg-emerald-100" /> {tr.calendar.free}
+          <span className="h-3 w-3 rounded bg-emerald-100 dark:bg-emerald-900/40" />{' '}
+          {tr.calendar.free}
         </span>
         <span className="inline-flex items-center gap-1">
-          <span className="h-3 w-3 rounded bg-amber-100" /> {tr.calendar.partial}
+          <span className="h-3 w-3 rounded bg-amber-100 dark:bg-amber-900/40" />{' '}
+          {tr.calendar.partial}
         </span>
         <span className="inline-flex items-center gap-1">
-          <span className="h-3 w-3 rounded bg-slate-200" /> {tr.calendar.full}
+          <span className="h-3 w-3 rounded bg-slate-200 dark:bg-slate-700" />{' '}
+          {tr.calendar.full}
         </span>
         <span className="inline-flex items-center gap-1">
-          <span className="h-3 w-3 rounded bg-rose-100" /> {tr.calendar.blacklisted}
+          <span className="h-3 w-3 rounded bg-rose-100 dark:bg-rose-900/40" />{' '}
+          {tr.calendar.blacklisted}
         </span>
         {isLoading && <span>{tr.calendar.loading}</span>}
       </div>

@@ -9,6 +9,8 @@ export const tr = {
     admin: 'Yönetici Paneli',
     booking: 'Rezervasyon',
     role: { admin: 'Yönetici', user: 'Kullanıcı' },
+    themeLight: 'Aydınlık moda geç',
+    themeDark: 'Gece moduna geç',
   },
   login: {
     header: 'Giriş Yap',
@@ -51,7 +53,6 @@ export const tr = {
   admin: {
     header: 'Yönetici Paneli',
     tabs: {
-      locations: 'Lokasyonlar',
       categories: 'Kategoriler',
       areas: 'Test Alanları',
       blacklist: 'Kara Liste',
@@ -59,7 +60,6 @@ export const tr = {
     },
     common: {
       name: 'Ad',
-      timezone: 'Zaman dilimi',
       add: 'Ekle',
       save: 'Kaydet',
       cancel: 'İptal',
@@ -69,7 +69,6 @@ export const tr = {
       actions: 'İşlemler',
       empty: 'Kayıt bulunamadı.',
       sortOrder: 'Sıra',
-      location: 'Lokasyon',
       category: 'Kategori',
       dailyCapacity: 'Günlük kapasite',
       minDays: 'Min gün',

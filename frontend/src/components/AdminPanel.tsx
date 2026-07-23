@@ -2,31 +2,35 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { HttpError, admin } from '../api';
 import { tr } from '../i18n';
-import type {
-  BlacklistDate,
-  Location,
-  TestArea,
-  TestCategory,
-  User,
-} from '../types';
+import type { BlacklistDate, TestArea, TestCategory, User } from '../types';
 
-type Tab = 'locations' | 'categories' | 'areas' | 'blacklist' | 'users';
+type Tab = 'categories' | 'areas' | 'blacklist' | 'users';
+
+const inputCls =
+  'rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-900 ' +
+  'focus:border-blue-500 focus:outline-none ' +
+  'dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
 
 export function AdminPanel() {
   const [tab, setTab] = useState<Tab>('areas');
   const t = tr.admin;
   return (
-    <section className="rounded-lg border bg-white p-4 shadow-sm">
+    <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm
+                        dark:border-slate-700 dark:bg-slate-800">
       <header className="mb-3 flex items-center justify-between">
-        <h2 className="text-base font-semibold">{t.header}</h2>
-        <nav className="flex gap-1 rounded-md bg-slate-100 p-1 text-sm">
+        <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+          {t.header}
+        </h2>
+        <nav className="flex gap-1 rounded-md bg-slate-100 p-1 text-sm dark:bg-slate-900">
           {(Object.keys(t.tabs) as Tab[]).map((k) => (
             <button
               key={k}
               type="button"
               onClick={() => setTab(k)}
               className={`rounded px-3 py-1 ${
-                tab === k ? 'bg-white shadow text-slate-900' : 'text-slate-600'
+                tab === k
+                  ? 'bg-white text-slate-900 shadow dark:bg-slate-700 dark:text-slate-100'
+                  : 'text-slate-600 dark:text-slate-300'
               }`}
             >
               {t.tabs[k]}
@@ -35,7 +39,6 @@ export function AdminPanel() {
         </nav>
       </header>
 
-      {tab === 'locations' && <Locations />}
       {tab === 'categories' && <Categories />}
       {tab === 'areas' && <Areas />}
       {tab === 'blacklist' && <Blacklist />}
@@ -55,104 +58,17 @@ function useErrorFlash() {
 
 function FlashError({ msg }: { msg: string | null }) {
   if (!msg) return null;
-  return <div className="mb-2 rounded bg-rose-50 p-2 text-sm text-rose-800">{msg}</div>;
+  return (
+    <div className="mb-2 rounded bg-rose-50 p-2 text-sm text-rose-800
+                    dark:bg-rose-900/40 dark:text-rose-200">
+      {msg}
+    </div>
+  );
 }
 
-// --------- Locations ---------
-function Locations() {
-  const qc = useQueryClient();
-  const { data = [], isLoading } = useQuery({
-    queryKey: ['admin', 'locations'],
-    queryFn: admin.listLocations,
-  });
-  const [name, setName] = useState('');
-  const [tz, setTz] = useState('Europe/Istanbul');
-  const flash = useErrorFlash();
-
-  const create = useMutation({
-    mutationFn: () => admin.createLocation({ name, timezone: tz }),
-    onSuccess: () => {
-      setName('');
-      qc.invalidateQueries({ queryKey: ['admin', 'locations'] });
-      qc.invalidateQueries({ queryKey: ['hierarchy'] });
-    },
-    onError: flash.from,
-  });
-  const update = useMutation({
-    mutationFn: (loc: Location) =>
-      admin.updateLocation(loc.id, { name: loc.name, timezone: loc.timezone }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'locations'] });
-      qc.invalidateQueries({ queryKey: ['hierarchy'] });
-    },
-    onError: flash.from,
-  });
-  const remove = useMutation({
-    mutationFn: (id: number) => admin.deleteLocation(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'locations'] });
-      qc.invalidateQueries({ queryKey: ['hierarchy'] });
-    },
-    onError: flash.from,
-  });
-
+function Muted({ children }: { children: React.ReactNode }) {
   return (
-    <div>
-      <FlashError msg={flash.msg} />
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          flash.clear();
-          if (name.trim()) create.mutate();
-        }}
-        className="mb-3 flex flex-wrap gap-2"
-      >
-        <input
-          placeholder={tr.admin.common.name}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="min-w-[160px] flex-1 rounded border px-2 py-1 text-sm"
-        />
-        <input
-          placeholder={tr.admin.common.timezone}
-          value={tz}
-          onChange={(e) => setTz(e.target.value)}
-          className="min-w-[160px] flex-1 rounded border px-2 py-1 text-sm"
-        />
-        <button
-          type="submit"
-          className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
-        >
-          {tr.admin.common.add}
-        </button>
-      </form>
-
-      {isLoading ? (
-        <p className="text-sm text-slate-500">{tr.app.loading}</p>
-      ) : data.length === 0 ? (
-        <p className="text-sm text-slate-500">{tr.admin.common.empty}</p>
-      ) : (
-        <EditableTable
-          headers={[tr.admin.common.name, tr.admin.common.timezone, tr.admin.common.actions]}
-          rows={data.map((loc) => ({
-            key: loc.id,
-            cells: [
-              <InlineText
-                key="n"
-                value={loc.name}
-                onSave={(v) => update.mutate({ ...loc, name: v })}
-              />,
-              <InlineText
-                key="t"
-                value={loc.timezone}
-                onSave={(v) => update.mutate({ ...loc, timezone: v })}
-              />,
-              <RowActions key="a" onDelete={() => remove.mutate(loc.id)} />,
-            ],
-          }))}
-        />
-      )}
-    </div>
+    <p className="text-sm text-slate-500 dark:text-slate-400">{children}</p>
   );
 }
 
@@ -210,23 +126,23 @@ function Categories() {
           placeholder={tr.admin.common.name}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="min-w-[160px] flex-1 rounded border px-2 py-1 text-sm"
+          className={`${inputCls} min-w-[160px] flex-1`}
         />
         <input
           type="number"
           placeholder={tr.admin.common.sortOrder}
           value={sort}
           onChange={(e) => setSort(Number(e.target.value))}
-          className="w-24 rounded border px-2 py-1 text-sm"
+          className={`${inputCls} w-24`}
         />
         <button className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700">
           {tr.admin.common.add}
         </button>
       </form>
       {isLoading ? (
-        <p className="text-sm text-slate-500">{tr.app.loading}</p>
+        <Muted>{tr.app.loading}</Muted>
       ) : data.length === 0 ? (
-        <p className="text-sm text-slate-500">{tr.admin.common.empty}</p>
+        <Muted>{tr.admin.common.empty}</Muted>
       ) : (
         <EditableTable
           headers={[tr.admin.common.name, tr.admin.common.sortOrder, tr.admin.common.actions]}
@@ -257,24 +173,18 @@ function Areas() {
   const qc = useQueryClient();
   const areasQ = useQuery({ queryKey: ['admin', 'areas'], queryFn: admin.listAreas });
   const catsQ = useQuery({ queryKey: ['admin', 'categories'], queryFn: admin.listCategories });
-  const locsQ = useQuery({ queryKey: ['admin', 'locations'], queryFn: admin.listLocations });
   const flash = useErrorFlash();
 
   const [form, setForm] = useState({
     name: '',
     category_id: 0,
-    location_id: 0,
     daily_capacity: 1,
     min_days: 1,
     max_days: 7,
   });
 
   const create = useMutation({
-    mutationFn: () =>
-      admin.createArea({
-        ...form,
-        is_active: 1,
-      }),
+    mutationFn: () => admin.createArea({ ...form, is_active: 1 }),
     onSuccess: () => {
       setForm({ ...form, name: '' });
       qc.invalidateQueries({ queryKey: ['admin', 'areas'] });
@@ -287,7 +197,6 @@ function Areas() {
     mutationFn: (a: TestArea) =>
       admin.updateArea(a.id, {
         category_id: a.category_id,
-        location_id: a.location_id,
         name: a.name,
         daily_capacity: a.daily_capacity,
         min_days: a.min_days,
@@ -313,9 +222,7 @@ function Areas() {
 
   const areas = areasQ.data ?? [];
   const cats = catsQ.data ?? [];
-  const locs = locsQ.data ?? [];
   const catName = (id: number) => cats.find((c) => c.id === id)?.name ?? '—';
-  const locName = (id: number) => locs.find((l) => l.id === id)?.name ?? '—';
 
   return (
     <div>
@@ -324,8 +231,7 @@ function Areas() {
         onSubmit={(e) => {
           e.preventDefault();
           flash.clear();
-          if (form.name.trim() && form.category_id && form.location_id)
-            create.mutate();
+          if (form.name.trim() && form.category_id) create.mutate();
         }}
         className="mb-3 grid grid-cols-2 gap-2 md:grid-cols-6"
       >
@@ -333,12 +239,12 @@ function Areas() {
           placeholder={tr.admin.common.name}
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="col-span-2 rounded border px-2 py-1 text-sm"
+          className={`${inputCls} col-span-2`}
         />
         <select
           value={form.category_id}
           onChange={(e) => setForm({ ...form, category_id: Number(e.target.value) })}
-          className="rounded border px-2 py-1 text-sm"
+          className={inputCls}
         >
           <option value={0}>{tr.admin.common.category}</option>
           {cats.map((c) => (
@@ -347,24 +253,12 @@ function Areas() {
             </option>
           ))}
         </select>
-        <select
-          value={form.location_id}
-          onChange={(e) => setForm({ ...form, location_id: Number(e.target.value) })}
-          className="rounded border px-2 py-1 text-sm"
-        >
-          <option value={0}>{tr.admin.common.location}</option>
-          {locs.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.name}
-            </option>
-          ))}
-        </select>
         <input
           type="number"
           min={1}
           value={form.daily_capacity}
           onChange={(e) => setForm({ ...form, daily_capacity: Number(e.target.value) })}
-          className="rounded border px-2 py-1 text-sm"
+          className={inputCls}
           title={tr.admin.common.dailyCapacity}
         />
         <div className="flex gap-1">
@@ -373,7 +267,7 @@ function Areas() {
             min={1}
             value={form.min_days}
             onChange={(e) => setForm({ ...form, min_days: Number(e.target.value) })}
-            className="w-full rounded border px-2 py-1 text-sm"
+            className={`${inputCls} w-full`}
             title={tr.admin.common.minDays}
           />
           <input
@@ -381,7 +275,7 @@ function Areas() {
             min={1}
             value={form.max_days}
             onChange={(e) => setForm({ ...form, max_days: Number(e.target.value) })}
-            className="w-full rounded border px-2 py-1 text-sm"
+            className={`${inputCls} w-full`}
             title={tr.admin.common.maxDays}
           />
         </div>
@@ -391,15 +285,14 @@ function Areas() {
       </form>
 
       {areasQ.isLoading ? (
-        <p className="text-sm text-slate-500">{tr.app.loading}</p>
+        <Muted>{tr.app.loading}</Muted>
       ) : areas.length === 0 ? (
-        <p className="text-sm text-slate-500">{tr.admin.common.empty}</p>
+        <Muted>{tr.admin.common.empty}</Muted>
       ) : (
         <EditableTable
           headers={[
             tr.admin.common.name,
             tr.admin.common.category,
-            tr.admin.common.location,
             tr.admin.common.dailyCapacity,
             tr.admin.common.minDays,
             tr.admin.common.maxDays,
@@ -414,8 +307,9 @@ function Areas() {
                 value={a.name}
                 onSave={(v) => update.mutate({ ...a, name: v })}
               />,
-              <span key="c">{catName(a.category_id)}</span>,
-              <span key="l">{locName(a.location_id)}</span>,
+              <span key="c" className="text-slate-800 dark:text-slate-200">
+                {catName(a.category_id)}
+              </span>,
               <InlineNumber
                 key="cap"
                 value={a.daily_capacity}
@@ -442,8 +336,8 @@ function Areas() {
                 }
                 className={`rounded px-2 py-0.5 text-xs ${
                   a.is_active
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : 'bg-slate-200 text-slate-600'
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200'
+                    : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
                 }`}
               >
                 {a.is_active ? tr.admin.common.active : tr.admin.common.inactive}
@@ -462,20 +356,17 @@ function Blacklist() {
   const qc = useQueryClient();
   const listQ = useQuery({ queryKey: ['admin', 'blacklist'], queryFn: admin.listBlacklist });
   const areasQ = useQuery({ queryKey: ['admin', 'areas'], queryFn: admin.listAreas });
-  const locsQ = useQuery({ queryKey: ['admin', 'locations'], queryFn: admin.listLocations });
   const flash = useErrorFlash();
 
   const [date, setDate] = useState('');
   const [reason, setReason] = useState('');
   const [scope, setScope] = useState<string>('global');
 
-  function parseScope(): { test_area_id: number | null; location_id: number | null } {
-    if (scope === 'global') return { test_area_id: null, location_id: null };
+  function parseScope(): { test_area_id: number | null } {
+    if (scope === 'global') return { test_area_id: null };
     if (scope.startsWith('area:'))
-      return { test_area_id: Number(scope.slice(5)), location_id: null };
-    if (scope.startsWith('loc:'))
-      return { test_area_id: null, location_id: Number(scope.slice(4)) };
-    return { test_area_id: null, location_id: null };
+      return { test_area_id: Number(scope.slice(5)) };
+    return { test_area_id: null };
   }
 
   const create = useMutation({
@@ -507,10 +398,6 @@ function Blacklist() {
       const a = areasQ.data?.find((x) => x.id === b.test_area_id);
       return a ? `${tr.admin.tabs.areas}: ${a.name}` : `area#${b.test_area_id}`;
     }
-    if (b.location_id) {
-      const l = locsQ.data?.find((x) => x.id === b.location_id);
-      return l ? `${tr.admin.common.location}: ${l.name}` : `loc#${b.location_id}`;
-    }
     return tr.admin.common.all;
   }
 
@@ -529,21 +416,14 @@ function Blacklist() {
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="rounded border px-2 py-1 text-sm"
+          className={inputCls}
         />
         <select
           value={scope}
           onChange={(e) => setScope(e.target.value)}
-          className="rounded border px-2 py-1 text-sm"
+          className={inputCls}
         >
           <option value="global">{tr.admin.common.all}</option>
-          <optgroup label={tr.admin.common.location}>
-            {locsQ.data?.map((l) => (
-              <option key={`loc-${l.id}`} value={`loc:${l.id}`}>
-                {l.name}
-              </option>
-            ))}
-          </optgroup>
           <optgroup label={tr.admin.tabs.areas}>
             {areasQ.data?.map((a) => (
               <option key={`area-${a.id}`} value={`area:${a.id}`}>
@@ -556,7 +436,7 @@ function Blacklist() {
           placeholder={tr.admin.common.reason}
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          className="rounded border px-2 py-1 text-sm"
+          className={inputCls}
         />
         <button className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700">
           {tr.admin.common.add}
@@ -564,9 +444,9 @@ function Blacklist() {
       </form>
 
       {listQ.isLoading ? (
-        <p className="text-sm text-slate-500">{tr.app.loading}</p>
+        <Muted>{tr.app.loading}</Muted>
       ) : (listQ.data?.length ?? 0) === 0 ? (
-        <p className="text-sm text-slate-500">{tr.admin.common.empty}</p>
+        <Muted>{tr.admin.common.empty}</Muted>
       ) : (
         <EditableTable
           headers={[
@@ -575,17 +455,21 @@ function Blacklist() {
             tr.admin.common.reason,
             tr.admin.common.actions,
           ]}
-          rows={
-            listQ.data!.map((b) => ({
-              key: b.id,
-              cells: [
-                <span key="d">{b.date}</span>,
-                <span key="s">{scopeLabel(b)}</span>,
-                <span key="r">{b.reason ?? '—'}</span>,
-                <RowActions key="a" onDelete={() => remove.mutate(b.id)} />,
-              ],
-            }))
-          }
+          rows={listQ.data!.map((b) => ({
+            key: b.id,
+            cells: [
+              <span key="d" className="text-slate-800 dark:text-slate-200">
+                {b.date}
+              </span>,
+              <span key="s" className="text-slate-800 dark:text-slate-200">
+                {scopeLabel(b)}
+              </span>,
+              <span key="r" className="text-slate-800 dark:text-slate-200">
+                {b.reason ?? '—'}
+              </span>,
+              <RowActions key="a" onDelete={() => remove.mutate(b.id)} />,
+            ],
+          }))}
         />
       )}
     </div>
@@ -612,9 +496,9 @@ function Users() {
     <div>
       <FlashError msg={flash.msg} />
       {isLoading ? (
-        <p className="text-sm text-slate-500">{tr.app.loading}</p>
+        <Muted>{tr.app.loading}</Muted>
       ) : data.length === 0 ? (
-        <p className="text-sm text-slate-500">{tr.admin.common.empty}</p>
+        <Muted>{tr.admin.common.empty}</Muted>
       ) : (
         <EditableTable
           headers={[
@@ -627,15 +511,19 @@ function Users() {
           rows={data.map((u: User) => ({
             key: u.id,
             cells: [
-              <span key="u">{u.username}</span>,
-              <span key="n">{u.full_name ?? '—'}</span>,
+              <span key="u" className="text-slate-800 dark:text-slate-200">
+                {u.username}
+              </span>,
+              <span key="n" className="text-slate-800 dark:text-slate-200">
+                {u.full_name ?? '—'}
+              </span>,
               <select
                 key="r"
                 value={u.role}
                 onChange={(e) =>
                   patch.mutate({ id: u.id, role: e.target.value as 'admin' | 'user' })
                 }
-                className="rounded border px-2 py-0.5 text-xs"
+                className={`${inputCls} px-2 py-0.5 text-xs`}
               >
                 <option value="user">{tr.app.role.user}</option>
                 <option value="admin">{tr.app.role.admin}</option>
@@ -646,13 +534,13 @@ function Users() {
                 onClick={() => patch.mutate({ id: u.id, is_active: u.is_active ? 0 : 1 })}
                 className={`rounded px-2 py-0.5 text-xs ${
                   u.is_active
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : 'bg-slate-200 text-slate-600'
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200'
+                    : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
                 }`}
               >
                 {u.is_active ? tr.admin.common.active : tr.admin.common.inactive}
               </button>,
-              <span key="l" className="text-slate-500">
+              <span key="l" className="text-slate-500 dark:text-slate-400">
                 {u.last_login_at
                   ? new Date(u.last_login_at).toLocaleString('tr-TR')
                   : tr.admin.common.never}
@@ -676,7 +564,8 @@ function EditableTable({ headers, rows }: { headers: string[]; rows: Row[] }) {
     <div className="overflow-x-auto">
       <table className="min-w-full text-sm">
         <thead>
-          <tr className="border-b text-left text-xs uppercase tracking-wide text-slate-500">
+          <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500
+                         dark:border-slate-700 dark:text-slate-400">
             {headers.map((h) => (
               <th key={h} className="py-2 pr-3 font-medium">
                 {h}
@@ -686,7 +575,10 @@ function EditableTable({ headers, rows }: { headers: string[]; rows: Row[] }) {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.key} className="border-b last:border-0">
+            <tr
+              key={r.key}
+              className="border-b border-slate-100 last:border-0 dark:border-slate-700/60"
+            >
               {r.cells.map((c, i) => (
                 <td key={i} className="py-1.5 pr-3 align-middle">
                   {c}
@@ -713,7 +605,7 @@ function InlineText({
       value={v}
       onChange={(e) => setV(e.target.value)}
       onBlur={() => v !== value && onSave(v)}
-      className="w-full rounded border px-1 py-0.5 text-sm"
+      className={`${inputCls} w-full px-1 py-0.5`}
     />
   );
 }
@@ -735,7 +627,7 @@ function InlineNumber({
       value={v}
       onChange={(e) => setV(Number(e.target.value))}
       onBlur={() => v !== value && onSave(v)}
-      className="w-20 rounded border px-1 py-0.5 text-sm"
+      className={`${inputCls} w-20 px-1 py-0.5`}
     />
   );
 }
@@ -747,7 +639,8 @@ function RowActions({ onDelete }: { onDelete: () => void }) {
       onClick={() => {
         if (confirm(tr.admin.common.confirmDelete)) onDelete();
       }}
-      className="rounded bg-rose-50 px-2 py-0.5 text-xs text-rose-700 hover:bg-rose-100"
+      className="rounded bg-rose-50 px-2 py-0.5 text-xs text-rose-700 hover:bg-rose-100
+                 dark:bg-rose-900/40 dark:text-rose-200 dark:hover:bg-rose-900/60"
     >
       {tr.admin.common.delete}
     </button>

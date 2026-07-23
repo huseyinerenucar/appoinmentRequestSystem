@@ -6,7 +6,6 @@ import type {
   BlacklistDate,
   CreateBookingInput,
   HierarchyNode,
-  Location,
   LoginResponse,
   TestArea,
   TestCategory,
@@ -94,20 +93,6 @@ export function createBooking(
 
 // ---- admin ----
 export const admin = {
-  listLocations: () => request<Location[]>('/admin/locations'),
-  createLocation: (body: { name: string; timezone: string }) =>
-    request<Location>('/admin/locations', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    }),
-  updateLocation: (id: number, body: { name: string; timezone: string }) =>
-    request<Location>(`/admin/locations/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(body),
-    }),
-  deleteLocation: (id: number) =>
-    request<void>(`/admin/locations/${id}`, { method: 'DELETE' }),
-
   listCategories: () => request<TestCategory[]>('/admin/categories'),
   createCategory: (body: { name: string; sort_order?: number }) =>
     request<TestCategory>('/admin/categories', {
@@ -139,7 +124,6 @@ export const admin = {
   listBlacklist: () => request<BlacklistDate[]>('/admin/blacklist'),
   createBlacklist: (body: {
     test_area_id: number | null;
-    location_id: number | null;
     date: string;
     reason?: string | null;
   }) =>

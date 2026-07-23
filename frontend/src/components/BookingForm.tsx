@@ -84,14 +84,21 @@ export function BookingForm({ areaId }: Props) {
     });
   }
 
+  const inputCls =
+    'mt-1 w-full rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-900 ' +
+    'focus:border-blue-500 focus:outline-none ' +
+    'dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
+
   return (
     <form
       onSubmit={submit}
-      className="space-y-3 rounded-lg border bg-white p-4 shadow-sm"
+      className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
     >
-      <h3 className="text-base font-semibold">{tr.booking.header}</h3>
+      <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+        {tr.booking.header}
+      </h3>
 
-      <div className="text-sm text-slate-600">
+      <div className="text-sm text-slate-600 dark:text-slate-300">
         {rangeStart && rangeEnd ? (
           <span>
             <b>{rangeStart}</b> → <b>{rangeEnd}</b>
@@ -102,11 +109,11 @@ export function BookingForm({ areaId }: Props) {
       </div>
 
       <label className="block text-sm">
-        <span className="text-slate-700">
+        <span className="text-slate-700 dark:text-slate-200">
           {tr.booking.projectName} <span className="text-rose-500">*</span>
         </span>
         <input
-          className="mt-1 w-full rounded border px-2 py-1 text-sm"
+          className={inputCls}
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
           required
@@ -114,18 +121,20 @@ export function BookingForm({ areaId }: Props) {
       </label>
 
       <label className="block text-sm">
-        <span className="text-slate-700">{tr.booking.projectOwner}</span>
+        <span className="text-slate-700 dark:text-slate-200">
+          {tr.booking.projectOwner}
+        </span>
         <input
-          className="mt-1 w-full rounded border px-2 py-1 text-sm"
+          className={inputCls}
           value={projectOwner}
           onChange={(e) => setProjectOwner(e.target.value)}
         />
       </label>
 
       <label className="block text-sm">
-        <span className="text-slate-700">{tr.booking.notes}</span>
+        <span className="text-slate-700 dark:text-slate-200">{tr.booking.notes}</span>
         <textarea
-          className="mt-1 w-full rounded border px-2 py-1 text-sm"
+          className={inputCls}
           rows={2}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
@@ -136,19 +145,20 @@ export function BookingForm({ areaId }: Props) {
         type="submit"
         disabled={!canSubmit}
         className="w-full rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white
-                   hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                   hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300
+                   dark:disabled:bg-slate-600"
       >
         {mutation.isPending ? tr.booking.submitting : tr.booking.submit}
       </button>
 
       {success && (
-        <div className="rounded bg-emerald-50 p-2 text-sm text-emerald-800">
+        <div className="rounded bg-emerald-50 p-2 text-sm text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
           {tr.booking.success(success.id)}
         </div>
       )}
 
       {errorMsg && (
-        <div className="rounded bg-rose-50 p-2 text-sm text-rose-800">
+        <div className="rounded bg-rose-50 p-2 text-sm text-rose-800 dark:bg-rose-900/40 dark:text-rose-200">
           <p>{errorMsg}</p>
           {conflictDates.length > 0 && (
             <p className="mt-1 text-xs">
